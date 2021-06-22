@@ -198,6 +198,7 @@ tomato_graph <- garden_harvest %>%
        fill = "Variety") +
   transition_reveal(date)
 ```
+
 ```{r, eval=FALSE}
 animate(tomato_graph, end_pause = 15, width=750, height=450)
 ```
@@ -231,7 +232,7 @@ mallorca_map <- get_stamenmap(
     zoom = 11)
 ```
 
-```{r}
+```{r, eval=FALSE}
 ggmap(mallorca_map) +
   geom_path(data = mallorca_bike_day7, 
              aes(x = lon, y = lat, color = ele),
@@ -249,6 +250,14 @@ ggmap(mallorca_map) +
             aes(label = ele2)) +
   theme(legend.position = "bottom") +
   transition_reveal(time)
+```
+
+```{r, eval=FALSE, echo=FALSE}
+anim_save("mallorca_bike_graph.gif")
+```
+
+```{r, echo=FALSE}
+knitr::include_graphics("mallorca_bike_graph.gif")
 ```
 
 **Comment**: I prefer this moving graph a lot over the static one! It really shows the active nature of the bike ride, and allows the viewer to feel as if they are going along with the route. It is a little harder to look at the route overall, but that could be improved by adding a longer pause at the end of the animation. I also added the current elevation as a geom_text to my plot, which is slightly hard to read but does provide more information for the viewer if they wanted to know a more specific elevation at any one point. 
@@ -292,16 +301,37 @@ LINE JUMPING--WRONG TIMES SHOWING UP. SOMETHING IS WRONG. RECOLOR ENTRY BY EVENT
   * Comment on what you observe.
   
 ```{r}
-covid19 %>% 
+covid_log_graph <- covid19 %>% 
   group_by(state) %>%
   mutate(seven_day_lag = lag(cases, n=7), week_cases = cases-seven_day_lag) %>% 
   replace_na(list(seven_day_lag = 0, week_cases = 0)) %>% 
   filter(cases>20) %>% 
   ggplot(aes(x = cases, y = week_cases, group = state)) +
-  geom_path() 
-  
+  geom_path(color = "gray67") +
+  scale_x_log10(labels = scales::comma) +
+  scale_y_log10(labels = scales::comma) +
+  geom_point(color = "red", size = 2) +
+  geom_text(aes(label = state), check_overlap = TRUE) +
+  transition_reveal(date) +
+  labs(title = "Trajectory of US Covid19 Cases in All States",
+       y = "Cases in the Past Week (log scale)",
+       x = "Total Cases (log scale)",
+      subtitle = "Date: {frame_along}")
 ```
 
+```{r, eval=FALSE}
+animate(covid_log_graph, nframes = 200, duration = 30)
+```
+
+```{r, eval=FALSE, echo=FALSE}
+anim_save("covid_log_graph2.gif")
+```
+
+```{r, echo=FALSE}
+knitr::include_graphics("covid_log_graph2.gif")
+```
+  
+ **Comment**: In this graph I see WHAT???? 
   
   7. In this exercise you will animate a map of the US, showing how cumulative COVID-19 cases per 10,000 residents has changed over time. This is similar to exercises 11 & 12 from the previous exercises, with the added animation! So, in the end, you should have something like the static map you made there, but animated over all the days. The code below gives the population estimates for each state and loads the `states_map` data. Here is a list of details you should include in the plot:
   
