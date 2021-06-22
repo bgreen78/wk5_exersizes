@@ -136,24 +136,37 @@ ggplotly(fishing_graph,
 
   2. Use animation to tell an interesting story with the `small_trains` dataset that contains data from the SNCF (National Society of French Railways). These are Tidy Tuesday data! Read more about it [here](https://github.com/rfordatascience/tidytuesday/tree/master/data/2019/2019-02-26).
 
-```{r}
+```{r, eval=FALSE}
 small_trains %>% 
-group_by(departure_station, arrival_station) %>% 
-summarize(tot_trips = sum(total_num_trips)) %>%
+  group_by(arrival_station, year) %>% 
+  summarize(tot_trips = sum(total_num_trips), year, arrival_station) %>% 
+  filter(tot_trips>40000) %>% 
   arrange(desc(tot_trips)) %>% 
-  slice(1:20)
+  ggplot(aes(x = year, y = tot_trips, group = arrival_station)) +
+  geom_point() +
+  geom_line() +
+  transition_states(arrival_station)  +
+  labs(title = "How Many Trains Arrived in the Highest Trafficked\n Stations in France from 2015-2018?",
+       x = "",
+       y = "Number of Arriving Trains",
+       subtitle = "Station: {closest_state}") +
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "darkblue"),
+        panel.background = element_rect(fill = "ivory"),
+        axis.text = element_text(color = "ivory"),
+        axis.title = element_text(color = "ivory"),
+        plot.title = element_text(color = "ivory", size = 14),
+        plot.title.position = "plot",
+        plot.subtitle = element_text(color = "ivory", size = 10))
 ```
 
-%>%
-fct_infreq(departure_station) %>% 
-  ggplot(aes(x = tot_trips, y = arrival_station)) +
-  geom_point() +
-  facet_grid(vars(departure_station))
-  
-ggplot(aes(x = avg_delay_all_departing, y = avg_delay_all_arriving)) +
-  geom_point() +
-  transition_states(departure_station)
+```{r, eval=FALSE, echo=FALSE}
+anim_save("small_trains_graph.gif")
+```
 
+```{r, echo=FALSE}
+knitr::include_graphics("small_trains_graph.gif")
+```
 
 ## Garden data
 
