@@ -150,6 +150,7 @@ small_trains %>%
        x = "",
        y = "Number of Arriving Trains",
        subtitle = "Station: {closest_state}") +
+  scale_y_continuous(labels = scales::comma) +
   theme_bw() +
   theme(plot.background = element_rect(fill = "darkblue"),
         panel.background = element_rect(fill = "ivory"),
@@ -161,11 +162,11 @@ small_trains %>%
 ```
 
 ```{r, eval=FALSE, echo=FALSE}
-anim_save("small_trains_graph.gif")
+anim_save("small_trains_graph2.gif")
 ```
 
 ```{r, echo=FALSE}
-knitr::include_graphics("small_trains_graph.gif")
+knitr::include_graphics("small_trains_graph2.gif")
 ```
 
 ## Garden data
@@ -350,6 +351,42 @@ census_pop_est_2018 <- read_csv("https://www.dropbox.com/s/6txwv3b4ng7pepe/us_ce
 
 states_map <- map_data("state")
 ```
+
+```{r, eval=FALSE}
+cases_by_pop <-
+  covid19 %>% 
+  mutate(state = str_to_lower(state)) %>% 
+  left_join(census_pop_est_2018,
+            by = "state") %>% 
+  mutate(cases_per_10000 = ((cases*10000)/est_pop_2018),
+         day = wday(date, label=TRUE)) %>% 
+  filter(day == "Fri")
+
+covid_states_graph <- ggplot(cases_by_pop) +
+  geom_map(map = states_map,
+           aes(map_id = state, fill = cases_per_10000, group = date)) +
+  expand_limits(x = states_map$long, y = states_map$lat) +
+  labs(title = "Cumulative Covid19 Cases per 10,000 People in Each State",
+       fill = "Cases per 10,000 People",
+       subtitle = "Date: {frame_time}") +
+  theme_map() +
+  transition_time(date)
+```
+
+```{r, eval=FALSE}
+animate(covid_states_graph, end_pause = 10, nframes = 200)
+```
+
+```{r, eval=FALSE, echo=FALSE}
+anim_save("covid_states_graph.gif")
+```
+
+```{r, echo=FALSE}
+knitr::include_graphics("covid_states_graph.gif")
+```
+
+**Comment**: This graph allows the viewer to see what states and parts of the country were hit hardest by the Covid19 pandemic over time with respect to their population. The number of cases per 10,000 residents takes off first in the midwest in November, but gets significantly worse across the country in the winter of 2020. The very top of the Northwest and the Northeast both had much lower cases per 10,000 throughout the whole period. 
+
 
 ## Your first `shiny` app (for next week!)
 
