@@ -12,7 +12,7 @@ output:
 
 
 ```{r setup, include=FALSE}
-#knitr::opts_chunk$set(echo = TRUE, error=TRUE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(echo = TRUE, error=TRUE, message=FALSE, warning=FALSE)
 ```
 
 ```{r libraries}
@@ -85,7 +85,7 @@ Once your repository is created, you should always open your **project** rather 
   
 ```{r}
 lettuce_graph <- garden_harvest %>% 
-  filter(vegetable=="lettuce") %>%
+  filter(vegetable == "lettuce") %>%
   group_by(variety) %>%
   summarize(count = n()) %>% 
   ggplot(aes(x = count, y = fct_reorder(variety,count), text = variety)) +
@@ -140,13 +140,13 @@ ggplotly(fishing_graph,
 small_trains %>% 
   group_by(arrival_station, year) %>% 
   summarize(tot_trips = sum(total_num_trips), year, arrival_station) %>% 
-  filter(tot_trips>40000) %>% 
+  filter(tot_trips > 40000) %>% 
   arrange(desc(tot_trips)) %>% 
   ggplot(aes(x = year, y = tot_trips, group = arrival_station)) +
   geom_point() +
   geom_line() +
   transition_states(arrival_station)  +
-  labs(title = "How Many Trains Arrived in the Highest Trafficked\n Stations in France from 2015-2018?",
+  labs(title = "How Many Trains Arrived in the Most Travelled\n Stations in France from 2015-2018?",
        x = "",
        y = "Number of Arriving Trains",
        subtitle = "Station: {closest_state}") +
@@ -155,18 +155,18 @@ small_trains %>%
   theme(plot.background = element_rect(fill = "darkblue"),
         panel.background = element_rect(fill = "ivory"),
         axis.text = element_text(color = "ivory"),
-        axis.title = element_text(color = "ivory"),
-        plot.title = element_text(color = "ivory", size = 14),
+        axis.title = element_text(color = "ivory", size = 14),
+        plot.title = element_text(color = "ivory", size = 18),
         plot.title.position = "plot",
-        plot.subtitle = element_text(color = "ivory", size = 10))
+        plot.subtitle = element_text(color = "ivory", size = 14))
 ```
 
 ```{r, eval=FALSE, echo=FALSE}
-anim_save("small_trains_graph2.gif")
+anim_save("small_trains_graph3.gif")
 ```
 
 ```{r, echo=FALSE}
-knitr::include_graphics("small_trains_graph2.gif")
+knitr::include_graphics("small_trains_graph3.gif")
 ```
 
 ## Garden data
@@ -263,6 +263,7 @@ knitr::include_graphics("mallorca_bike_graph.gif")
 
 **Comment**: I prefer this moving graph a lot over the static one! It really shows the active nature of the bike ride, and allows the viewer to feel as if they are going along with the route. It is a little harder to look at the route overall, but that could be improved by adding a longer pause at the end of the animation. I also added the current elevation as a geom_text to my plot, which is slightly hard to read but does provide more information for the viewer if they wanted to know a more specific elevation at any one point. 
 
+
   
   5. In this exercise, you get to meet my sister, Heather! She is a proud Mac grad, currently works as a Data Scientist at 3M where she uses R everyday, and for a few years (while still holding a full-time job) she was a pro triathlete. You are going to map one of her races. The data from each discipline of the Ironman 70.3 Pan Am championships, Panama is in a separate file - `panama_swim`, `panama_bike`, and `panama_run`. Create a similar map to the one you created with my cycling data. You will need to make some small changes: 1. combine the files (HINT: `bind_rows()`, 2. make the leading dot a different color depending on the event (for an extra challenge, make it a different image using `geom_image()!), 3. CHALLENGE (optional): color by speed, which you will need to compute on your own from the data. You can read Heather's race report [here](https://heatherlendway.com/2016/02/10/ironman-70-3-pan-american-championships-panama-race-report/). She is also in the Macalester Athletics [Hall of Fame](https://athletics.macalester.edu/honors/hall-of-fame/heather-lendway/184) and still has records at the pool. 
   
@@ -274,22 +275,35 @@ panama_map <- get_stamenmap(
 ```
 
 ```{r}
-panama_all <- bind_rows(panama_run, panama_bike, panama_swim)
+panama_all <- bind_rows(panama_swim, panama_bike, panama_run)
 ```
 
-```{r}
+```{r, eval=FALSE}
 ggmap(panama_map) +
   geom_path(data = panama_all, 
              aes(x = lon, y = lat, color = ele),
              size = 1) +
   scale_color_viridis_c(option = "inferno") +
   theme_map() +
-  labs(title = "Panama Triathalon",
+  geom_point(data = panama_all, 
+             aes(x = lon, y = lat, fill = event),
+            size = 2.5,
+            shape = 21) +
+  labs(title = "Heather Lendway's Panama Triathlon",
        color = "Elevation",
+       fill = "Event",
        subtitle = "Time: {frame_along}") +
   transition_reveal(time)
 ```
-LINE JUMPING--WRONG TIMES SHOWING UP. SOMETHING IS WRONG. RECOLOR ENTRY BY EVENT.
+
+```{r, eval=FALSE, echo=FALSE}
+anim_save("panama_triathlon.gif")
+```
+
+```{r, echo=FALSE}
+knitr::include_graphics("panama_triathlon.gif")
+```
+
   
 ## COVID-19 data
 
@@ -304,9 +318,11 @@ LINE JUMPING--WRONG TIMES SHOWING UP. SOMETHING IS WRONG. RECOLOR ENTRY BY EVENT
 ```{r}
 covid_log_graph <- covid19 %>% 
   group_by(state) %>%
-  mutate(seven_day_lag = lag(cases, n=7), week_cases = cases-seven_day_lag) %>% 
-  replace_na(list(seven_day_lag = 0, week_cases = 0)) %>% 
-  filter(cases>20) %>% 
+  mutate(seven_day_lag = lag(cases, n=7),
+         week_cases = cases-seven_day_lag) %>% 
+  replace_na(list(seven_day_lag = 0,
+                  week_cases = 0)) %>% 
+  filter(cases > 20) %>% 
   ggplot(aes(x = cases, y = week_cases, group = state)) +
   geom_path(color = "gray67") +
   scale_x_log10(labels = scales::comma) +
@@ -332,7 +348,7 @@ anim_save("covid_log_graph2.gif")
 knitr::include_graphics("covid_log_graph2.gif")
 ```
   
- **Comment**: In this graph I see WHAT???? 
+ **Comment**: This graph shows the current intensity of Covid19 in the different states: if the dot is going down, that means fewer cases in that week than previous weeks, while a dot going up indicates a spike in cases that week. A state with a constant number of cases per week would just travel along a horizontal line. Early on, each state follows relatively the same trajectory where almost all of their total cases occurred in the past week, but some states shoot up again later while others slowly go down even as total cases continue to increase.
   
   7. In this exercise you will animate a map of the US, showing how cumulative COVID-19 cases per 10,000 residents has changed over time. This is similar to exercises 11 & 12 from the previous exercises, with the added animation! So, in the end, you should have something like the static map you made there, but animated over all the days. The code below gives the population estimates for each state and loads the `states_map` data. Here is a list of details you should include in the plot:
   
@@ -397,6 +413,8 @@ NOT DUE THIS WEEK! If any of you want to work ahead, this will be on next week's
 ## GitHub link
 
   9. Below, provide a link to your GitHub page with this set of Weekly Exercises. Specifically, if the name of the file is 05_exercises.Rmd, provide a link to the 05_exercises.md file, which is the one that will be most readable on GitHub. If that file isn't very readable, then provide a link to your main GitHub page.
+  
+[Bea's 05exersizes.md](https://github.com/bgreen78/wk5_exersizes/blob/main/Bea_Green_05_exercises.md)
 
 
 **DID YOU REMEMBER TO UNCOMMENT THE OPTIONS AT THE TOP?**
